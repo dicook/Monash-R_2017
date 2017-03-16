@@ -1,7 +1,7 @@
 ---
-title: "Hello woRld"
+title: "Research environment: Reproducibility, collaboration"
 subtitle: "E/EBS Honours, Monash University"
-author: "Carson Sievert (cpsievert1@gmail.com, @cpsievert); Di Cook (dicook@monash.edu, @visnut); Heike Hofmann (heike.hofmann@gmail.com, @heike_hh) Barret Schloerke (schloerke@gmail.com, @schloerke)"
+author: "Di Cook (dicook@monash.edu, @visnut), with help from Earo Wang, Stuart Lee and Wenjing Wang"
 date: "`r Sys.Date()`"
 output:
   ioslides_presentation:
@@ -22,18 +22,47 @@ knitr::opts_chunk$set(
 )
 ```
 
-# With your neighbor, list some things R _is_ and _does_
+## Research environment
 
-### R is ...
-### R does ...
+- Collaboration and sharing with `git`
+- Scripting your analysis 
+- Keeping your code, data and documentation all together
+
+## Collaboration
+
+- At some point you are going to want to share your code, your proposal, your slides, your thesis with your advisor(s) --> github makes this easy and safe (even if your advisor doesn't know git)
+- git is a VERSION CONTROL SYSTEM, keeps track of changes, merges changes from multiple people, allows switch back to previous version
+- github provides additional support that can be really help in keeping your work organised, and getting feedback from your advisor - CAN BE A PRIVATE REPO
+- git client's, like [gitkracken](https://www.gitkraken.com) provide a friendly interface to using git
+- You can have some files as "tracked" and others as "untracked". Handy for if you have really large data, or proprietary data, the data would be untracked, you have a local copy in your local directory, collaborators can have a copy of the data, but the server does not have a copy.
+
+## Structure, and learning
+
+![](figures/DistributedVCS.png)
+
+[Jenny Bryan's git tutorial](git@github.com:dicook/Monash-R_2017.git)
+
+## github support
+
+- README.md: Great place to do weekly updates to your advisor
+- wiki: Discussion board to map out project, hash out ideas, document progress
+- issues: Good place for you and advisor to list next steps, items to be completed, create, complete, keeps work ticking along in an organised 
+
+## Your turn
+
+- Go to [github.com]
+- Create an account
+- Give the name to one of Earo, Wenjing or Stuart, so I can add you to the repo for this class
+
+![](rainbow-lorikeet.png)
 
 ## R is ...
 
 * __Free__ to use
 * __Extensible__
-    * Over 7300 user contributed add-on packages currently on CRAN!
+    * Over 10000 user contributed add-on packages currently on CRAN!
 * __Powerful__
-    * With the right tools, get more work done, faster.
+    * With the right tools, get more work done, faster and better.
 * __Flexible__
     * Not a question of _can_, but _how_.
 * __Frustrating__
@@ -53,7 +82,7 @@ knitr::opts_chunk$set(
 * __Literate programming (dynamic reports)__
 * __Web applications__
 
-(This roughly serves as our outline. Slides and material can be found at [http://dicook.github.io/Monash-R/](http://dicook.github.io/Monash-R/).)
+(Slides and material can be found at [http://dicook.github.io/Monash-R/](http://dicook.github.io/Monash-R_2017/).)
 
 ## RStudio is ...
 
@@ -83,13 +112,26 @@ knitr::opts_chunk$set(
     - Tools for package development, git, etc
 <div>
 
+## Get a copy of the course materials
+
+- Go to [https://github.com/dicook/Monash-R_2017]
+- Download a zip copy of the repo
+- Unzip it
+
 ## Create a project
 
 Create a project to contain all of the material covered in this set of tutorials:
 
-* File -> New Project -> New Directory -> Empty Project
+* File -> New Project -> Existing Directory -> Monash-R_2017
 
 ![](createproject.png) 
+
+## Why?
+
+- Projects keep your work organised and specific for different tasks, e.g. honours thesis, coursework, research assistant work, charity work, your own startup, ...
+- Organising your work in a project, sets up the ability to make directories relative to this workspace, e.g. NO NEED TO USE `read.csv(C:/Documents and Settings/Adele/Honours/data/SkyFall.csv`, simply address data as `read.csv("data/SkyFall.csv")`
+- Less chance of having conflicts in data names, results, ... easier to keep clean
+- Better than using `setwd()`, `getwd()`
 
 ## Hello R Markdown!
 
@@ -99,6 +141,8 @@ Create a project to contain all of the material covered in this set of tutorials
   <img src="rmarkdown.png" height="600" width="1000">
 </div>
 
+Save the Rmd file into the "student_files" directory
+
 ## What is R Markdown?
 
 - From the [R Markdown home page](http://rmarkdown.rstudio.com/):
@@ -107,129 +151,20 @@ Create a project to contain all of the material covered in this set of tutorials
 R Markdown is an authoring format that enables easy creation of dynamic documents, presentations, and reports from R. It combines the core syntax of __markdown__ (an easy-to-write plain text format) __with embedded R code chunks__ that are run so their output can be included in the final document. R Markdown documents are fully reproducible (they can be automatically regenerated whenever underlying R code or data changes).
 </blockquote>
 
-- RStudio's [cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf) gives a nice, concise overview of its capabilities.
+- RStudio's [Rmarkdown cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf) gives a nice, concise overview of its capabilities.
 
 - RStudio's [reference guide](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf) lists its options.
 
+
 ## For your reference
 
-- [Download](index.Rmd), save, and open the document which generates these slides in RStudio (you can do that with this R code):
+- Open the document `index.Rmd` which generates these slides in RStudio
+- Run all the chunks up until this point
 
-```{r, eval = FALSE}
-curl::curl_download(
-  "https://raw.githubusercontent.com/dicook/Monash-R/gh-pages/1-Intro/index.Rmd",
-  "index.Rmd"
-)
-file.edit("index.Rmd")
-```
+## Other output formats, other code 
 
-- [Download](index.R), save, and open the corresponding R script.
-
-```{r, eval = FALSE}
-curl::curl_download(
-  "https://raw.githubusercontent.com/dicook/Monash-R/gh-pages/1-Intro/index.R",
-  "index.R"
-)
-file.edit("index.R")
-```
-
-## Some Basics
-
-* Combine values into a vector with `c()`
-
-```{r}
-c(0, 1)
-```
-
-* Assign values to a name with `<-`
-
-```{r}
-x <- c(0, 1)
-```
-
-* Avoid `for` loops and use built-in _vectorized_ functions
-
-```{r}
-sum(x + 10)
-```
-
-* Although arcane at times, `R` has rich support for documentation, see `?sum`
-
----
-
-* Use `[` to extract elements of a vector.
-
-```{r}
-c("a", "b")[1]
-c("a", "b")[c(T, F)]
-```
-
-* Extract _named_ elements with `$`, `[[`, and/or `[`
-
-```{r}
-x <- list(
-  a = 10,
-  b = c(1, "2")
-)
-x$a
-x[["a"]]
-x["a"]
-```
-
-## Examining 'structure'
-
-* `str()` is probably my favorite `R` function. It shows you the "structure" of _any_ R object (and _everything_ in R is an object!!!)
-
-```{r}
-str(x)
-```
-
-* Lists are heterogenous (elements can have different types)
-* Vectors are homogenous (elements have the same type)
-    * That's why `c(1, "2")` ends up being a character string.
-
-* If you'd like to know more, see Hadley Wickham's online chapters on [data structures](http://adv-r.had.co.nz/Data-structures.html) and [subsetting](http://adv-r.had.co.nz/Subsetting.html)
-
-## Getting Help
-
-* Reading documentation only gets you so far. What about _finding_ function(s) and/or package(s) to help solve a problem???
-
-* Google! (I usually prefix "CRAN" to my search; others might suggest <http://www.rseek.org/>)
-
-* Ask your question on a relevant StackExchange outlet such as  <http://stackoverflow.com/> or <http://stats.stackexchange.com/>
-
-* It's becoming more and more popular to bundle "vignettes" with a package (__dplyr__ has _awesome_ vignettes)
-
-```{r, eval = FALSE}
-browseVignettes("dplyr")
-```
-
-## Some Oddities
-
-* Yes, `+` is a function (which calls compiled C code)
-
-```{r}
-`+`
-```
-
-* What's that? You don't like addition? Me neither!
-
-```{r}
-"+" <- function(x, y) "I forgot how to add"
-1 + 2
-```
-
-* But seriously, don't "overload operators" unless you know what you're doing
-
-```{r}
-rm("+")
-```
-
-## Trust me
-
-<div align="center">
-  <img src="doge.png" width="300" height="500">
-</div>
+- Output can be html (this), Word, pdf (you need latex installed)
+- Code chunks can be other languages, e.g. python, SAS, 
 
 ## Obligatory economics example
 
@@ -253,6 +188,18 @@ p <- ggplot(economics, aes(date, unemploy / pop)) +
   geom_line()
 p
 ```
+
+## Grammar of graphics
+
+- `ggplot2` builds plots using a grammar
+- This is analogous to doing a functional mappings that define statistics, e.g. $\bar{X} = \sum_{i=1}^{n}X_i/n$
+- Start with tidy data, where variables are clearly defined
+- Map variables to aesthetics e.g. x axis, y axis, colour
+- Apply a geom, e.g. point, line, boxplot
+- Use a coordinate system
+- Facet, split into subplots
+- Add themes, annotations, ...
+- A data plot becomes a statistic, and it is possible to compare and contrast different plots
 
 ## Hello Linear/Additive Models!
 
@@ -287,77 +234,53 @@ library(plotly)
 ggplotly(p)
 ```
 
-## Your turn
+## Tidy data
 
-![](rainbow-lorikeet.png)
-
-Make the loess smoother plot without `geom_smooth()` (hint: convert `date` to a numeric vector with `as.numeric()` and use `loess()`). For a solution, see [here](https://github.com/cpsievert/slides/blob/gh-pages/intro/yourTurn1.R)
-
-## Reshaping data
-
-<div align="center">
-  <img src="reshape.png" width="900" height="500">
-</div>
-
----
-
-```{r, echo = FALSE}
-data(economics)
-```
-
-
-```{r}
-head(economics)
-```
+Tidy data is organised so that variables and observations are clearly identified. 
 
 ```{r}
 library(tidyr)
-e <- gather(economics, variable, value, -date)
-head(e)
+library(readr)
+tb <- read_csv("../data/tb.csv")
+head(tb)
 ```
 
 ---
 
 ```{r, fig.height = 5.5, fig.width = 10}
-ggplot(e, aes(date, value)) + geom_line() +
-  facet_wrap(~ variable, scales = "free_y")
+str(tb)
 ```
 
-## Split-apply-combine
-
-<div align="center">
-<img src="http://inundata.org/R_talks/meetup/images/splitapply.png" width="750" height="500">
-</div>
-
-[Image by Karthik Ram](http://inundata.org/R_talks/meetup/images/splitapply.png) (adapted from Hadley Wickham, plyr paper)
-
-## Split-apply-combine in dplyr
-
-```{r}
-library(dplyr)
-# add a year column
-e <- mutate(economics, year = format(date, "%Y"))
-# split by year
-e <- group_by(e, year)
-# mean of each group
-summarise(e, mpce = mean(pce))
-```
-
-## Focus on the transformation(s), not the object
-
-```{r}
-economics %>%
-  mutate(year = format(date, "%Y")) %>%
-  group_by(year) %>%
-  summarise(mpce = mean(pce))
-```
+What do you think m_04, m_514, m_014, ... mean?
 
 ## Your turn
 
 ![](rainbow-lorikeet.png)
 
-- __Easy__: Find the average annual personal savings rate (`psavert`).
-- __Hard__: Find the annual average for each variable. Can you create a useful visual of this information?
+- What are the variables in this data?
+- What are the observations?
+
+## Tidying
+
+```{r}
+tb %>% gather(var, count, -year, -iso2)
+```
+
+---
+
+```{r}
+tb %>% gather(var, count, -year, -iso2) %>%
+  separate(var, c("gender", "age"))
+```
+
+---
+
+```{r}
+library(dplyr)
+tb_long <- tb %>% gather(var, count, -year, -iso2) %>%
+  separate(var, c("gender", "age"))
+tb_long %>% group_by(year, gender) %>% tally()
+```
 
 ## A new example: babynames
 
@@ -370,7 +293,6 @@ dim(babynames)
 ## Write/read csv (or other flat files)
 
 ```{r, cache = TRUE}
-library(readr)
 bb_path <- tempfile(fileext = ".csv", tmpdir = ".")
 write_csv(babynames, bb_path)
 read_csv(bb_path)
@@ -426,75 +348,47 @@ class(hc)
 hc
 ```
 
-## Interactive graphics
+## Read json format data from the web
 
-```{r, fig.height = 5, fig.width = 10, cache = FALSE, warning = FALSE}
-p <- ggplot(hc, aes(x=year, y=prop, colour=sex)) + 
-  geom_point() + geom_line() +
-  scale_colour_manual(values=c("M"="blue", "F"="hotpink"))
-ggplotly(p)
-#plot_ly(hc, x = -year, y = -prop, color = -sex, colors = c("blue", "hotpink"))
-```
-
-## Your turn
-
-Use Rmarkdown to write a one page report, that does these things:
-
-- Loads the babynames package
-- Filters on your name
-- Finds the year when your name was most popular
-- Plots the number of babies born with this name by year and sex
-- Written paragraphs describing what you learn
-
----
+Extracted from [http://openexchangerates.org](http://openexchangerates.org), extracted using the json api, with the R package, jsonlite.
 
 ```{r}
-popular <- babynames %>%
-  group_by(name) %>%
-  summarise(N = sum(n)) %>%
-  arrange(desc(N))
-popular
+library(readr)
+rates <- read_csv("../data/rates.csv")
+rates[1:5,1:8]
 ```
 
----
+If you'd like to collect exchange rates yourself, see [here](https://gist.github.com/cpsievert/e05da83fc4253e6d1986).
+
+## Getting maps
 
 ```{r}
-top <- top_n(popular, 1000)
-topnames <- subset(babynames, name %in% top[["name"]])
-topnames
+library(ggmap)
+library(ggthemes)
+m <- get_map(location=c(145.13, -37.9150), zoom=14, scale=1)
+#ggmap(m)
+b <- as.numeric(attr(m, "bb"))
+m_df <- data.frame(lon=(rep(1:640, 640)-1)/640*(b[4]-b[2])+b[2],
+                   lat=(rep(640:1, rep(640, 640))-1)/640*(b[3]-b[1])+b[1],
+                        fill=as.vector(m))
+ggplot() + geom_tile(data=m_df, aes(x=lon, y=lat, fill=fill)) +
+  scale_fill_identity() +
+  theme_map() + theme(legend.position="none", aspect.ratio=1)
 ```
 
----
+## Homework
 
-<iframe src="http://104.131.111.111:3838/topnames/" width="1000" height=800></iframe>
+1. Create a new Rmd file, that will read 10 days of exchange rates from, and makes a plot, or some summary statistics, or fit some model of the data
+2. Add and commit the file to the course github repo, in the "student_files" directory
+3. Create a new issue of something that you want me to add to/edit in your document
 
----
+## Thanks for coming!
 
-```{r, eval = FALSE}
-library(shiny)
-library(ggplot2)
-ui <- bootstrapPage(
-  selectizeInput(
-    inputId = 'name', 
-    label = 'Enter a name', 
-    choices = unique(topnames$name),
-    selected = "James",
-    multiple = TRUE
-  ),
-  plotOutput('plot')
-)
-server <- function(input, output) {
-  output$plot <- renderPlot({ 
-    dat <- subset(topnames, name %in% input$name)
-    ggplot(dat, aes(year, prop, colour = sex)) + 
-      geom_line() + facet_wrap(~ name)
-  })
-}
-runApp(shinyApp(ui, server))
-```
-
-
-# Thanks for coming!
-
-* Materials at [http://dicook.github.io/Monash-R/](http://dicook.github.io/Monash-R/)
+* Materials at [http://dicook.github.io/Monash-R_2017/](http://dicook.github.io/Monash-R/)
 * Resources at [RStudio](https://www.rstudio.com/resources/training/online-learning/)
+* RStudio's [IDE cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/01/rstudio-IDE-cheatsheet.pdf).
+* RStudio's [Rmarkdown cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf).
+* RStudio's [Reading data cheat sheet](https://github.com/rstudio/cheatsheets/raw/master/source/pdfs/data-import-cheatsheet.pdf).
+* Jenny Bryan's [git tutorial](http://happygitwithr.com) and [how to ask questions so they get answered](https://github.com/jennybc/reprex)
+* [stackoverflow](http://stackoverflow.com) Q&A site for coding
+* [crossvalidated](http://stats.stackexchange.com) Q&A site for statistics
