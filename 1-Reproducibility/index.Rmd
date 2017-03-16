@@ -395,7 +395,7 @@ m_df <- data.frame(lon=(rep(1:640, 640)-1)/640*(b[4]-b[2])+b[2],
 ```
 ---
 
-```{r fig.width=5}
+```{r fig.width=7, fig.height=7}
 ggplot() + geom_tile(data=m_df, aes(x=lon, y=lat, fill=fill)) +
   scale_fill_identity() +
   theme_map() + theme(legend.position="none", aspect.ratio=1)
