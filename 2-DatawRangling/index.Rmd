@@ -1,0 +1,622 @@
+---
+title: "Data wRangling"
+subtitle: "E/EBS Honours, Monash University"
+author: "Carson Sievert (cpsievert1@gmail.com, @cpsievert); Di Cook (dicook@monash.edu, @visnut); Heike Hofmann (heike.hofmann@gmail.com, @heike_hh); Barret Schloerke (schloerke@gmail.com, @schloerke)"
+date: '`r Sys.Date()`'
+output:
+  ioslides_presentation:
+    transition: default
+    widescreen: yes
+  beamer_presentation: default
+css: styles.css
+---
+
+```{r, echo = FALSE}
+library(knitr)
+opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  fig.height = 4,
+  fig.width = 8,
+  fig.align = "center",
+  cache = FALSE
+)
+options(digits = 2)
+```
+
+
+## Warmups - Problem 1
+
+10 week sensory experiment, 12 individuals assessed taste of french fries on several scales (how potato-y, buttery, grassy, rancid, paint-y do they taste?), fried in one of 3 different oils, replicated twice. First few rows:
+
+```{r, echo = FALSE}
+library(tidyr)
+library(dplyr)
+library(readr)
+data(french_fries, package = "reshape2")
+kable(head(french_fries, 4), format = "markdown", row.names = F)
+```
+
+What do you want to know?
+
+## Warmups - Problem 2
+
+What's in the column names of this data?
+
+```{r, echo=FALSE}
+genes <- read_csv("http://dicook.github.io/Monash-R/data/genes.csv")
+kable(genes)
+```
+
+## Warmups - Problem 3
+
+How many ways can you write today's date?
+
+## What we are going to cover today
+
+- Reading different data formats
+- Tidying data
+- Split - apply - combine
+- Pipes
+- Joins
+- Working with dates
+- Splitting strings
+
+## Reading different data formats
+
+- images: `library(EBImage)`
+- sound: `library(tuneR)`
+- fixed width fields: `read.fwf()`
+- netCDF: `library(ncdf)`
+- hdf5: `library(hdf5)`
+- json: `library(jsonlite)`
+
+## XML/HTML
+
+```{r}
+library(XML)
+src <- "http://www.realclearpolitics.com/epolls/2012/president/us/republican_presidential_nomination-1452.html"
+tables <- readHTMLTable(src)
+polls <- tables[[1]]
+head(polls)
+```
+
+See also `scrapeR`, `rvest`
+
+## GIS
+
+This code is a bit slow to run, but it draws all the electoral districts of Australia. 
+
+```{r, eval = FALSE}
+library(maptools)
+xx <- readShapeSpatial("http://dicook.github.io/Monash-R/data/australia/region.shp")
+object.size(as(xx, "SpatialPolygons"))
+xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), 
+  tolerance=0.5, minarea=0.001, topologyPreserve=TRUE)
+object.size(as(xxx, "SpatialPolygons"))
+qplot(long, lat, data=xx, group=group) + geom_path() + coord_map() 
+```
+
+## French fries - hot chips
+
+10 week sensory experiment, 12 individuals assessed taste of french fries on several scales (how potato-y, buttery, grassy, rancid, paint-y do they taste?), fried in one of 3 different oils, replicated twice. First few rows:
+
+
+```{r, echo=FALSE, results='asis'}
+kable(head(french_fries), format = "markdown", row.names = FALSE)
+```
+
+## What would we like to know?
+
+- Is the design complete?
+- Are replicates like each other?
+- How do the ratings on the different scales differ?
+- Are raters giving different scores on average?
+- Do ratings change over the weeks?
+
+Each of these questions involves different summaries of the data.
+
+## What we have and what we want
+
+<div align="center">
+  <img src="reshape.png" width="900" height="550"/>
+</div>
+
+## Gathering
+
+- When gathering, you need to specify the **keys** (identifiers) and the **values** (measures).
+
+Keys/Identifiers:
+- Identify a record (must be unique)
+- Example: Indices on an random variable
+- Fixed by design of experiment (known in advance)
+- May be single or composite (may have one or more variables)
+
+Values/Measures:
+- Collected during the experiment (not known in advance)
+- Usually numeric quantities
+
+## Gathering the French Fries
+
+```{r}
+library(tidyr)
+ff_long <- gather(french_fries, key = variable, value = rating, potato:painty)
+head(ff_long)
+```
+
+## Long to Wide
+
+In certain applications, we may wish to take a long dataset and convert it to a wide dataset (Perhaps displaying in a table).
+
+This is called "spreading" the data.
+
+## Spread
+
+We use the **spread** function from tidyr to do this:
+
+```{r}
+french_fries_wide <- spread(ff_long, key = variable, value = rating)
+
+head(french_fries_wide)
+```
+
+## Lets use gather and spread to answer some questions
+
+Easiest question to start is whether the ratings are similar on the different scales, potato'y, buttery, grassy, rancid and painty. 
+
+We need to gather the data into long form, and make plots facetted by the scale. 
+
+## Ratings on the different scales
+
+```{r, fig.height=2, fig.width=8}
+library(ggplot2)
+ff.m <- french_fries %>% 
+  gather(type, rating, -subject, -time, -treatment, -rep)
+head(ff.m)
+qplot(rating, data=ff.m, binwidth=2) + 
+  facet_wrap(~type, ncol=5) 
+```
+
+## Side-by-side boxplots
+
+```{r}
+qplot(type, rating, data = ff.m, fill = type, geom = "boxplot")
+```
+
+
+## Do the replicates look like each other?
+
+We will start to tackle this by plotting the replicates against each other using a scatterplot. 
+
+We need to gather the data into long form, and then get the replicates spread into separate columns. 
+
+## Check replicates
+
+```{r, fig.show='hold', fig.align='default', fig.height=4, fig.width=4}
+head(ff.m)
+ff.s <- ff.m %>% spread(rep, rating)
+head(ff.s)
+```
+
+## Check replicates
+
+```{r, fig.show='hold', fig.align='default', fig.height=3, fig.width=3}
+qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
+  xlab("Rep 1") + ylab("Rep 2")
+qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
+  xlab("Rep 1") + ylab("Rep 2") + 
+  scale_x_log10() + scale_y_log10()
+```
+
+## Your turn
+
+![](rainbow-lorikeet.png)
+
+Make the scatterplots of reps against each other separately for scales, and treatment. 
+
+```{r, echo=FALSE}
+qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
+  xlab("Rep 1") + ylab("Rep 2") + facet_wrap(~type, ncol=5)
+qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
+  xlab("Rep 1") + ylab("Rep 2") + facet_grid(treatment~type)
+```
+
+## Legos = tidy data
+
+![](figures/lego.png)
+
+(Courtesy of Hadley Wickham)
+
+## Play mobile = messy data
+
+![](figures/playmobile.png)
+
+(Courtesy of Hadley Wickham)
+
+## Your turn
+
+![](rainbow-lorikeet.png)
+
+Read in the billboard top 100 music data, which contains N'Sync and Backstreet Boys songs that entered the billboard charts in the year 2000
+
+```{r}
+billboard <- read.csv("http://dicook.github.io/Monash-R/data/billboard.csv")
+```
+
+What's in this data? What's X1-X76?
+
+## Your turn
+
+![](rainbow-lorikeet.png)
+
+1. Use `tidyr` to convert this data into a long format appropriate for plotting a time series (date on the x axis, chart position on the y axis)
+2. Use `ggplot2` to create this time series plot:
+
+```{r, echo=FALSE, fig.height=3}
+long_billboard <- gather(billboard, key = week, value = rank, X1:X76)
+long_billboard$week <- as.numeric(gsub("X", "", long_billboard$week))
+
+qplot(week, rank, data = long_billboard, geom = "line", colour = artist, group = track)
+```
+
+
+## The Split-Apply-Combine Approach
+
+![](figures/splitapply.png)
+
+(Diagram originally from Hadley Wickham)
+
+## Split-Apply-Combine in dplyr
+
+```{r}
+library(dplyr)
+french_fries_split <- group_by(ff_long, variable) # SPLIT
+french_fries_apply <- summarise(french_fries_split, rating = mean(rating, na.rm = TRUE)) # APPLY + COMBINE
+french_fries_apply
+```
+
+## The pipe operator
+
+- dplyr allows us to chain together these data analysis tasks using the `%>%` (pipe) operator
+- `x %>% f(y)` is shorthand for `f(x, y)`
+- Example:
+
+```{r}
+french_fries %>%
+    gather(key = variable, value = rating, potato:painty) %>%
+    group_by(variable) %>%
+    summarise(rating = mean(rating, na.rm = TRUE))
+```
+
+## dplyr verbs
+ 
+There are five primary dplyr **verbs**, representing distinct data analysis tasks:
+
+- Filter: Remove the rows of a data frame, producing subsets
+- Arrange: Reorder the rows of a data frame
+- Select: Select particular columns of a data frame
+- Mutate: Add new columns that are functions of existing columns
+- Summarise: Create collapsed summaries of a data frame
+    
+## Filter
+
+```{r}
+french_fries %>%
+    filter(subject == 3, time == 1)
+```
+
+## Arrange
+
+```{r}
+french_fries %>%
+    arrange(desc(rancid)) %>%
+    head
+```
+
+## Select
+
+```{r}
+french_fries %>%
+    select(time, treatment, subject, rep, potato) %>%
+    head
+```
+
+## Summarise
+
+```{r}
+french_fries %>%
+    group_by(time, treatment) %>%
+    summarise(mean_rancid = mean(rancid), sd_rancid = sd(rancid))
+```
+
+## Let's use these tools to answer the rest of the french fries questions
+
+If the data is complete it should be 12 x 10 x 3 x 2, that is, 6 records for each person. (Assuming that each person rated on all scales.) 
+
+To check this we want to tabulate the number of records for each subject, time and treatment. This means select appropriate columns, tabulate, count and spread it out to give a nice table.
+
+## Check completeness
+
+```{r}
+french_fries %>% 
+  select(subject, time, treatment) %>% 
+  tbl_df() %>% 
+  count(subject, time) %>%
+  spread(time, n)
+```
+
+## Check completeness with different scales, too
+
+```{r}
+french_fries %>% 
+  gather(type, rating, -subject, -time, -treatment, -rep) %>%
+  select(subject, time, treatment, type) %>% 
+  tbl_df() %>% 
+  count(subject, time) %>%
+  spread(time, n)
+```
+
+## Change in ratings over weeks, relative to experimental design
+
+```{r}
+qplot(time, rating, data=ff.m, colour=treatment) + 
+  facet_grid(subject~type) 
+```
+
+## Add means over reps, and connect the dots
+
+```{r}
+ff.m.av <- ff.m %>% 
+  group_by(subject, time, type, treatment) %>%
+  summarise(rating=mean(rating))
+qplot(time, rating, data=ff.m, colour=treatment) + 
+  facet_grid(subject~type) +
+  geom_line(data=ff.m.av, aes(group=treatment))
+```
+
+## String manipulation
+
+When the experimental design is packed into column names, we need to unpack it. 
+
+```{r}
+genes <- read_csv("http://dicook.github.io/Monash-R/data/genes.csv")
+genes
+```
+
+## Gather column names into long form
+
+```{r}
+gather(genes, variable, expr, -id)
+```
+
+## Separate columns
+
+```{r}
+genes %>%
+  gather(variable, expr, -id) %>%
+  separate(variable, c("trt", "leftover"), "-")
+```
+
+---
+
+```{r}
+genes %>%
+  gather(variable, expr, -id) %>%
+  separate(variable, c("trt", "leftover"), "-") %>%
+  separate(leftover, c("time", "rep"), "\\.")
+```
+
+---
+
+```{r}
+gtidy <- genes %>%
+  gather(variable, expr, -id) %>%
+  separate(variable, c("trt", "leftover"), "-") %>%
+  separate(leftover, c("time", "rep"), "\\.") %>%
+  mutate(trt = sub("W", "", trt)) %>%
+  mutate(rep = sub("R", "", rep))
+gtidy
+```
+
+## Your turn
+
+![](rainbow-lorikeet.png)
+
+(1) Using the tidied dataset (`gtidy`), find the mean expression for each combination of id, trt, and time.
+(2) Use this tidied data to make this plot.
+
+```{r, echo=FALSE, fig.height=3}
+gmean <- gtidy %>% 
+  group_by(id, trt, time) %>% 
+  summarise(expr = mean(expr))
+qplot(trt, expr, data = gtidy, colour = time) + 
+  xlab("Type of modification") + ylab("Expression") + 
+  facet_wrap(~id) +
+  geom_line(data = gmean, aes(group = time))
+```
+
+
+## Flight database
+
+SQLite database with flights that departed from New York City in the year 2013.
+
+```{r}
+db <- nycflights13_sqlite()
+db
+```
+
+We have a number of tables here, but 'flights' is most important
+
+---
+
+```{r}
+tbl(db, "flights")
+```
+
+## Top carriers
+
+``` {r}
+top <- tbl(db, "flights") %>%
+  count(carrier) %>%
+  arrange(desc(n))
+top
+```
+
+---
+
+```{r}
+tbl(db, "airlines")
+```
+
+---
+
+```{r}
+a <- tbl(db, "airlines")
+top <- left_join(top, a)
+top
+```
+
+## dplyr does SQL for us
+
+```{r}
+top$query
+```
+
+Ain't nobody got time for that!!
+
+## All the means!
+
+```{r}
+tbl(db, "flights") %>%
+  group_by(carrier) %>% 
+  summarise_each(funs(mean)) %>%
+  arrange(desc(dep_delay))
+```
+
+---
+
+```{r, error = TRUE}
+tbl(db, "flights") %>%
+  group_by(carrier) %>%
+  summarise(q = quantile(dep_delay, 0.75))
+```
+
+> - We can't expect _all_ R functions to translate to SQL.
+> - In order to use some R functions, we have no choice but to pull data into R (into memory).
+
+---
+
+```{r}
+flights <- collect(tbl(db, "flights"))
+```
+
+```{r}
+object.size(tbl(db, "flights"))
+object.size(flights)
+```
+
+```{r}
+flights %>%
+  group_by(carrier) %>%
+  summarise(q = quantile(arr_time, 0.75, na.rm = T))
+```
+
+---
+
+```{r}
+fortunes::fortune(192)
+```
+
+## Dates and Times
+
+Dates are deceptively hard to work with in R.
+
+**Example**: 02/05/2012. Is it February 5th, or May 2nd?
+
+Other things are difficult too:
+
+- Time zones
+- POSIXct format in base R is challenging
+
+The **lubridate** package helps tackle some of these issues.
+
+## Basic Lubridate Use
+
+```{r}
+library(lubridate)
+
+now()
+today()
+now() + hours(4)
+today() - days(2)
+```
+
+## Parsing Dates
+
+```{r}
+ymd("2013-05-14")
+mdy("05/14/2013")
+dmy("14052013")
+ymd_hms("2013:05:14 14:5:30", tz = "America/New_York")
+```
+
+## Flight Dates
+
+```{r}
+flights %>%
+  mutate(date = paste(year, month, day, sep = "-")) %>%
+  mutate(date2 = ymd(date)) %>%
+  select(date, date2)
+```
+
+## Your turn
+
+![](rainbow-lorikeet.png)
+
+Use the `ymd_hms()` function to make a date time that incorporates hours and minutes (__bonus__: why can't `ymd_hms()` parse every date time?)
+
+## Date times
+
+```{r, warning = TRUE}
+flights <- flights %>%
+  mutate(date = paste(year, month, day, sep = "-")) %>%
+  mutate(time = paste(hour, minute, "0", sep = ":")) %>%
+  mutate(dt = ymd_hms(paste(date, time))) 
+```
+
+```{r}
+flights %>%
+  filter(is.na(dt)) %>%
+  select(hour, minute, dt)
+```
+
+## Fitting models across groups
+
+If your apply function returns anything but a single value, use `do()` instead of `summarise()`
+
+```{r}
+models <- flights %>% 
+  group_by(carrier) %>%
+  do(m = lm(dep_delay ~ as.numeric(dt), data = .))
+models
+```
+
+---
+
+For each additional day, the departure delay for AirTran Airways increases by 0.05 minutes (3 seconds)
+
+```{r}
+models %>%
+  mutate(slope_min = coef(m)[["as.numeric(dt)"]]) %>%
+  mutate(slope_day = slope_min * 60 * 60 * 24) %>%
+  arrange(desc(slope_day)) %>%
+  left_join(a, copy = TRUE)
+```
+
+## Your turn
+
+![](rainbow-lorikeet.png)
+
+Which carrier has the highest intercept (departure delay at time 0)?
