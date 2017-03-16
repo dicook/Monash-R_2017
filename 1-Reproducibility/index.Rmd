@@ -42,15 +42,24 @@ knitr::opts_chunk$set(
 
 [Jenny Bryan's git tutorial](git@github.com:dicook/Monash-R_2017.git)
 
-## github support
+## Key github commands
+
+- `clone` Get a local copy of the repo
+- `pull` Get a fresh copy or changed files from the server
+- `add` Add a new file to be tracked
+- `commit` Let server know you want to merge changes
+- `push` Upload your changed files to the server
+
+## github structure
 
 - README.md: Great place to do weekly updates to your advisor
+- code: your thesis, code, data
 - wiki: Discussion board to map out project, hash out ideas, document progress
 - issues: Good place for you and advisor to list next steps, items to be completed, create, complete, keeps work ticking along in an organised 
 
 ## Your turn
 
-- Go to [github.com]
+- Go to [github.com](https://github.com)
 - Create an account
 - Give the name to one of Earo, Wenjing or Stuart, so I can add you to the repo for this class
 
@@ -111,6 +120,18 @@ knitr::opts_chunk$set(
     - File system navigation/access
     - Tools for package development, git, etc
 <div>
+
+## Package installation
+
+```{r eval=FALSE}
+# From CRAN
+install.packages("package_name")
+# From github
+devtools::install_github("github_username/package_name")
+# From bioconductor
+source("https://bioconductor.org/biocLite.R")
+biocLite("package_name")
+```
 
 ## Get a copy of the course materials
 
@@ -371,10 +392,35 @@ b <- as.numeric(attr(m, "bb"))
 m_df <- data.frame(lon=(rep(1:640, 640)-1)/640*(b[4]-b[2])+b[2],
                    lat=(rep(640:1, rep(640, 640))-1)/640*(b[3]-b[1])+b[1],
                         fill=as.vector(m))
+```
+---
+
+```{r fig.width=5}
 ggplot() + geom_tile(data=m_df, aes(x=lon, y=lat, fill=fill)) +
   scale_fill_identity() +
   theme_map() + theme(legend.position="none", aspect.ratio=1)
 ```
+
+## Getting spatial data
+
+```{r}
+library(maptools)
+sF <- readShapeSpatial("../data/australia/region.shp")
+library(rmapshaper)
+sFsmall <- ms_simplify(sF, keep=0.05)
+nat_map <- ggplot2::fortify(sFsmall)
+head(nat_map)
+```
+
+---
+
+```{r}
+ggplot(nat_map) +
+  geom_map(aes(map_id = id), map=nat_map) +
+  expand_limits(x=nat_map$long, y=nat_map$lat) + 
+  theme_map()
+```
+
 
 ## Homework
 
