@@ -91,7 +91,7 @@ knitr::opts_chunk$set(
 * __Literate programming (dynamic reports)__
 * __Web applications__
 
-(Slides and material can be found at [http://dicook.github.io/Monash-R/](http://dicook.github.io/Monash-R_2017/).)
+(Slides and material can be found at [https://github.com/dicook/Monash-R_2017](http://dicook.github.io/Monash-R_2017/).)
 
 ## RStudio is ...
 
