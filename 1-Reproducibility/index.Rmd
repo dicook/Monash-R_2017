@@ -313,7 +313,7 @@ dim(babynames)
 
 ## Write/read csv (or other flat files)
 
-```{r, cache = TRUE}
+```{r eval=FALSE}
 bb_path <- tempfile(fileext = ".csv", tmpdir = ".")
 write_csv(babynames, bb_path)
 read_csv(bb_path)
@@ -340,27 +340,27 @@ read_dta("path/to/file")
 
 ## dplyr loves databases
 
-```{r}
+```{r eval=FALSE}
 db <- src_sqlite("babynames.sqlite3", create = TRUE)
 if (!db_has_table(db$con, "babynames")) {
   copy_to(db, babynames)
 }
 ```
 
-```{r}
+```{r eval=FALSE}
 db
 tbl(db, "babynames")
 ```
 
 ## Send computation to the data
 
-```{r}
+```{r eval=FALSE}
 h <- db %>% 
   tbl("babynames") %>%
   filter(name == "Hilary")
 ```
 
-```{r}
+```{r eval=FALSE}
 class(h)
 h$query
 # execute SQL query and bring into R
