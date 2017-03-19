@@ -1,0 +1,49 @@
+---
+title: "Exchange Rates"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+```{r, echo=F, error=F, message=F, warning=F}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(jsonlite)
+library(ggplot2)
+library(GGally)
+
+```
+
+
+```{r}
+##create simple function to read exchange rates for last n days
+
+get_exchange_rates <- function(StartDate = Sys.Date(), n_Days = 10) 
+  {
+  df <- data.frame()
+  for (i in 0:(n_Days - 1)) 
+    {
+    i_date <- StartDate - i
+    u <- sprintf("https://openexchangerates.org/api/historical/%s.json?app_id=20534fe5e4b141e78f48802a0ce20f5c", i_date)
+    rates <- fromJSON(u, simplifyVector = TRUE)$rates %>% as.data.frame()
+    rates$date <- as.Date(i_date)
+    df <- rbind(df, rates)
+    }
+  return(df)
+  }
+
+df <- get_exchange_rates()
+
+df_tidy <- df %>% gather(currency, rate, 1:172)
+```
+
+```{r}
+a <- ggplot(data = df_tidy[df_tidy$currency == "AUD" | df_tidy$currency == "CAD" | df_tidy$currency == "SGD", ], aes(x = date)) + 
+  geom_line(aes(y = rate, colour = currency), size = 2) + xlab("Date") + ylab("USD/x Rate") + theme_minimal() + 
+  scale_color_brewer(palette = "Set1") + theme(legend.position = "bottom", plot.title = element_text(hjust = .5 )) + 
+  ggtitle(paste("Exchange Rates from", as.character.Date(Sys.Date()-9), "to", as.character.Date(Sys.Date()), sep = " "))
+a
+```
+
+
