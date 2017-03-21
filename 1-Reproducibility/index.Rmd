@@ -438,3 +438,7 @@ ggplot(nat_map) +
 * Jenny Bryan's [git tutorial](http://happygitwithr.com) and [how to ask questions so they get answered](https://github.com/jennybc/reprex)
 * [stackoverflow](http://stackoverflow.com) Q&A site for coding
 * [crossvalidated](http://stats.stackexchange.com) Q&A site for statistics
+
+## Share and share alike
+
+This work is licensed under the Creative Commons Attribution-Noncommercial 3.0 United States License. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc/ 3.0/us/ or send a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.

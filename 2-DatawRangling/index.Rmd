@@ -1,7 +1,7 @@
 ---
-title: "Data wRangling"
+title: "wRangling and Plotting your Data"
 subtitle: "E/EBS Honours, Monash University"
-author: "Carson Sievert (cpsievert1@gmail.com, @cpsievert); Di Cook (dicook@monash.edu, @visnut); Heike Hofmann (heike.hofmann@gmail.com, @heike_hh); Barret Schloerke (schloerke@gmail.com, @schloerke)"
+author: "Di Cook (dicook@monash.edu, @visnut), with help from Earo Wang, Stuart Lee and Wenjing Wang"
 date: '`r Sys.Date()`'
 output:
   ioslides_presentation:
@@ -46,58 +46,41 @@ What do you want to know?
 What's in the column names of this data?
 
 ```{r, echo=FALSE}
-genes <- read_csv("http://dicook.github.io/Monash-R/data/genes.csv")
+genes <- read_csv("../data/genes.csv")
 kable(genes)
 ```
 
 ## Warmups - Problem 3
 
-How many ways can you write today's date?
+What are the variables? What are the records?
+
+```{r}
+melbtemp <- read.fwf("../data/ASN00086282.dly", 
+   c(11, 4, 2, 4, rep(c(5, 1, 1, 1), 31)), fill=T)
+kable(head(melbtemp[,c(1,2,3,4,seq(5,128,4))]))
+```
+
+## Warmups - Problem 4
+
+What are the variables? What are the observations?
+
+```{r}
+pew <- read.delim(
+  file = "http://stat405.had.co.nz/data/pew.txt",
+  header = TRUE,
+  stringsAsFactors = FALSE,
+  check.names = F
+)
+kable(pew[1:5, 1:5])
+```
 
 ## What we are going to cover today
 
 - Reading different data formats
 - Tidying data
 - Split - apply - combine
-- Pipes
-- Joins
 - Working with dates
-- Splitting strings
-
-## Reading different data formats
-
-- images: `library(EBImage)`
-- sound: `library(tuneR)`
-- fixed width fields: `read.fwf()`
-- netCDF: `library(ncdf)`
-- hdf5: `library(hdf5)`
-- json: `library(jsonlite)`
-
-## XML/HTML
-
-```{r}
-library(XML)
-src <- "http://www.realclearpolitics.com/epolls/2012/president/us/republican_presidential_nomination-1452.html"
-tables <- readHTMLTable(src)
-polls <- tables[[1]]
-head(polls)
-```
-
-See also `scrapeR`, `rvest`
-
-## GIS
-
-This code is a bit slow to run, but it draws all the electoral districts of Australia. 
-
-```{r, eval = FALSE}
-library(maptools)
-xx <- readShapeSpatial("http://dicook.github.io/Monash-R/data/australia/region.shp")
-object.size(as(xx, "SpatialPolygons"))
-xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), 
-  tolerance=0.5, minarea=0.001, topologyPreserve=TRUE)
-object.size(as(xxx, "SpatialPolygons"))
-qplot(long, lat, data=xx, group=group) + geom_path() + coord_map() 
-```
+- Plotting your data
 
 ## French fries - hot chips
 
@@ -114,7 +97,7 @@ kable(head(french_fries), format = "markdown", row.names = FALSE)
 - Are replicates like each other?
 - How do the ratings on the different scales differ?
 - Are raters giving different scores on average?
-- Do ratings change over the weeks?
+- Do chips taste more rancid over the weeks?
 
 Each of these questions involves different summaries of the data.
 
@@ -172,19 +155,18 @@ We need to gather the data into long form, and make plots facetted by the scale.
 
 ```{r, fig.height=2, fig.width=8}
 library(ggplot2)
-ff.m <- french_fries %>% 
-  gather(type, rating, -subject, -time, -treatment, -rep)
-head(ff.m)
-qplot(rating, data=ff.m, binwidth=2) + 
-  facet_wrap(~type, ncol=5) 
+ggplot(data=ff_long, aes(x=rating)) + 
+  geom_histogram(binwidth=2) + 
+  facet_wrap(~variable, ncol=5) 
 ```
 
 ## Side-by-side boxplots
 
 ```{r}
-qplot(type, rating, data = ff.m, fill = type, geom = "boxplot")
+ggplot(data=ff_long, aes(x=rating)) + 
+  geom_histogram(binwidth=2) + 
+  facet_wrap(~variable, ncol=5) 
 ```
-
 
 ## Do the replicates look like each other?
 
@@ -195,19 +177,19 @@ We need to gather the data into long form, and then get the replicates spread in
 ## Check replicates
 
 ```{r, fig.show='hold', fig.align='default', fig.height=4, fig.width=4}
-head(ff.m)
-ff.s <- ff.m %>% spread(rep, rating)
+ff.s <- ff_long %>% spread(rep, rating)
 head(ff.s)
 ```
 
 ## Check replicates
 
 ```{r, fig.show='hold', fig.align='default', fig.height=3, fig.width=3}
-qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
+p <- ggplot(data=ff.s, aes(x=`1`, y=`2`)) + 
+  geom_point(alpha=0.5) +
+  theme(aspect.ratio=1) + 
   xlab("Rep 1") + ylab("Rep 2")
-qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
-  xlab("Rep 1") + ylab("Rep 2") + 
-  scale_x_log10() + scale_y_log10()
+p
+p + scale_x_log10() + scale_y_log10()
 ```
 
 ## Your turn
@@ -217,10 +199,24 @@ qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) +
 Make the scatterplots of reps against each other separately for scales, and treatment. 
 
 ```{r, echo=FALSE}
-qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
-  xlab("Rep 1") + ylab("Rep 2") + facet_wrap(~type, ncol=5)
-qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) + 
-  xlab("Rep 1") + ylab("Rep 2") + facet_grid(treatment~type)
+p + facet_wrap(~variable, ncol=5)
+p + facet_grid(treatment~variable)
+```
+
+## Are raters giving different scores on average?
+
+```{r fig.height=4.5, fig.width=9}
+ggplot(ff_long, aes(x=subject, y=rating)) + 
+  geom_boxplot() + facet_wrap(~variable)
+```
+
+---
+
+OR
+
+```{r fig.height=4.5, fig.width=9}
+ggplot(ff_long, aes(x=variable, y=rating)) + 
+  geom_boxplot() + facet_wrap(~subject)
 ```
 
 ## Legos = tidy data
@@ -242,7 +238,7 @@ qplot(`1`, `2`, data=ff.s) + theme(aspect.ratio=1) +
 Read in the billboard top 100 music data, which contains N'Sync and Backstreet Boys songs that entered the billboard charts in the year 2000
 
 ```{r}
-billboard <- read.csv("http://dicook.github.io/Monash-R/data/billboard.csv")
+billboard <- read.csv("../data/billboard.csv")
 ```
 
 What's in this data? What's X1-X76?
@@ -258,7 +254,8 @@ What's in this data? What's X1-X76?
 long_billboard <- gather(billboard, key = week, value = rank, X1:X76)
 long_billboard$week <- as.numeric(gsub("X", "", long_billboard$week))
 
-qplot(week, rank, data = long_billboard, geom = "line", colour = artist, group = track)
+ggplot(data = long_billboard, aes(week, rank)) + 
+  geom_line(aes(colour = artist, group = track))
 ```
 
 
@@ -358,22 +355,24 @@ french_fries %>%
   spread(time, n)
 ```
 
-## Change in ratings over weeks, relative to experimental design
+## Change in rancid ratings over weeks
 
 ```{r}
-qplot(time, rating, data=ff.m, colour=treatment) + 
-  facet_grid(subject~type) 
+p <- ff_long %>% filter(variable == "rancid") %>%
+  ggplot(aes(x=time, y=rating, colour=treatment)) + 
+         geom_point(alpha=0.5) +
+  facet_wrap(~subject) 
+p
 ```
 
 ## Add means over reps, and connect the dots
 
 ```{r}
-ff.m.av <- ff.m %>% 
-  group_by(subject, time, type, treatment) %>%
+ff.av <- ff_long %>% 
+  filter(variable == "rancid") %>%
+  group_by(subject, time, treatment) %>%
   summarise(rating=mean(rating))
-qplot(time, rating, data=ff.m, colour=treatment) + 
-  facet_grid(subject~type) +
-  geom_line(data=ff.m.av, aes(group=treatment))
+p + geom_line(data=ff.av, aes(group=treatment))
 ```
 
 ## String manipulation
@@ -381,7 +380,7 @@ qplot(time, rating, data=ff.m, colour=treatment) +
 When the experimental design is packed into column names, we need to unpack it. 
 
 ```{r}
-genes <- read_csv("http://dicook.github.io/Monash-R/data/genes.csv")
+genes <- read_csv("../data/genes.csv")
 genes
 ```
 
@@ -438,97 +437,6 @@ qplot(trt, expr, data = gtidy, colour = time) +
 ```
 
 
-## Flight database
-
-SQLite database with flights that departed from New York City in the year 2013.
-
-```{r}
-db <- nycflights13_sqlite()
-db
-```
-
-We have a number of tables here, but 'flights' is most important
-
----
-
-```{r}
-tbl(db, "flights")
-```
-
-## Top carriers
-
-``` {r}
-top <- tbl(db, "flights") %>%
-  count(carrier) %>%
-  arrange(desc(n))
-top
-```
-
----
-
-```{r}
-tbl(db, "airlines")
-```
-
----
-
-```{r}
-a <- tbl(db, "airlines")
-top <- left_join(top, a)
-top
-```
-
-## dplyr does SQL for us
-
-```{r}
-top$query
-```
-
-Ain't nobody got time for that!!
-
-## All the means!
-
-```{r}
-tbl(db, "flights") %>%
-  group_by(carrier) %>% 
-  summarise_each(funs(mean)) %>%
-  arrange(desc(dep_delay))
-```
-
----
-
-```{r, error = TRUE}
-tbl(db, "flights") %>%
-  group_by(carrier) %>%
-  summarise(q = quantile(dep_delay, 0.75))
-```
-
-> - We can't expect _all_ R functions to translate to SQL.
-> - In order to use some R functions, we have no choice but to pull data into R (into memory).
-
----
-
-```{r}
-flights <- collect(tbl(db, "flights"))
-```
-
-```{r}
-object.size(tbl(db, "flights"))
-object.size(flights)
-```
-
-```{r}
-flights %>%
-  group_by(carrier) %>%
-  summarise(q = quantile(arr_time, 0.75, na.rm = T))
-```
-
----
-
-```{r}
-fortunes::fortune(192)
-```
-
 ## Dates and Times
 
 Dates are deceptively hard to work with in R.
@@ -565,7 +473,9 @@ ymd_hms("2013:05:14 14:5:30", tz = "America/New_York")
 ## Flight Dates
 
 ```{r}
-flights %>%
+library(nycflights13)
+head(flights)
+f <- flights %>%
   mutate(date = paste(year, month, day, sep = "-")) %>%
   mutate(date2 = ymd(date)) %>%
   select(date, date2)
@@ -574,6 +484,29 @@ flights %>%
 ## Your turn
 
 ![](rainbow-lorikeet.png)
+
+What's the difference between `date` and `date2`?
+
+## Use date to plot over time
+
+```{r fig.width=9, fig.height=3}
+ff_day <- flights %>% 
+  mutate(date = paste(year, month, day, sep = "-")) %>%
+  mutate(date = ymd(date)) %>%
+  group_by(date) %>%
+  tally()
+ggplot(ff_day, aes(x=date, y=n)) + geom_line()
+```
+
+## By day of the week
+
+```{r fig.width=9, fig.height=3}
+ff_day <- ff_day %>%
+  mutate(day=wday(date, label = TRUE, abbr = TRUE))
+ggplot(ff_day, aes(x=day, y=n)) + geom_boxplot()
+```
+
+## Hours and minutes
 
 Use the `ymd_hms()` function to make a date time that incorporates hours and minutes (__bonus__: why can't `ymd_hms()` parse every date time?)
 
@@ -586,37 +519,135 @@ flights <- flights %>%
   mutate(dt = ymd_hms(paste(date, time))) 
 ```
 
-```{r}
-flights %>%
-  filter(is.na(dt)) %>%
-  select(hour, minute, dt)
-```
-
 ## Fitting models across groups
 
 If your apply function returns anything but a single value, use `do()` instead of `summarise()`
 
 ```{r}
-models <- flights %>% 
-  group_by(carrier) %>%
-  do(m = lm(dep_delay ~ as.numeric(dt), data = .))
+library(purrr)
+models <- flights %>%
+  split(.$carrier) %>%
+  map(~lm(dep_delay ~ hour, data = .)) %>%
+  map_df(coefficients) %>% 
+  t() %>% data.frame()
 models
 ```
 
 ---
 
-For each additional day, the departure delay for AirTran Airways increases by 0.05 minutes (3 seconds)
-
-```{r}
-models %>%
-  mutate(slope_min = coef(m)[["as.numeric(dt)"]]) %>%
-  mutate(slope_day = slope_min * 60 * 60 * 24) %>%
-  arrange(desc(slope_day)) %>%
-  left_join(a, copy = TRUE)
+```{r fig.width=9, fig.height=4}
+ggplot(flights, aes(x=hour, y=dep_delay)) + 
+  geom_point(alpha=0.5) + 
+  geom_smooth(method="lm", se=F) +
+  facet_wrap(~carrier)
 ```
 
 ## Your turn
 
 ![](rainbow-lorikeet.png)
 
-Which carrier has the highest intercept (departure delay at time 0)?
+- What does the intercept mean here?
+- Should you transform the departure delay?
+
+## Themes
+
+```{r echo=FALSE}
+ff.av.86 <- ff_long %>% 
+  filter(variable == "rancid", subject==86) %>%
+  group_by(subject, time, treatment) %>%
+  summarise(rating=mean(rating))
+p <- ff_long %>% filter(variable == "rancid", subject==86) %>% 
+  ggplot(aes(x=time, y=rating, colour=treatment)) + 
+         geom_point(alpha=0.5) +
+  geom_line(data=ff.av.86, aes(group=treatment))
+```
+
+```{r}
+library(ggthemes)
+p + theme_tufte()
+```
+
+---
+
+```{r}
+p + theme_economist()
+```
+
+## Color palettes
+
+```{r}
+p + scale_color_brewer("", palette = "Dark2")
+```
+
+## Color blind-proofing
+
+```{r, fig.width=4.5, fig.show='hold', fig.align='default'}
+library(dichromat)
+library(scales)
+clrs <- hue_pal()(3)
+p + scale_color_manual("", values=clrs) + theme(legend.position = "none")
+clrs <- dichromat(hue_pal()(3))
+p + scale_color_manual("", values=clrs) + theme(legend.position = "none")
+```
+
+---
+
+```{r, fig.width=4.5, fig.show='hold', fig.align='default'}
+library(RColorBrewer)
+clrs <- brewer.pal(3, "Dark2")
+p + scale_color_manual("", values=clrs) + theme(legend.position = "none")
+clrs <- dichromat(brewer.pal(3, "Dark2"))
+p + scale_color_manual("", values=clrs) + theme(legend.position = "none")
+```
+
+## Color palettes
+
+- Qualitative: categorical variables
+- Sequential: low to high numeric values
+- Diverging: negative to positive values
+
+---
+
+```{r, echo=FALSE, fig.height=7, fig.width=12}
+display.brewer.all()
+```
+
+## Perceptual principles
+
+- Hierarchy of mappings: (first) position along an axis - (last) color (Cleveland, 1984; Heer and Bostock, 2009)
+- Pre-attentive: Some elements are noticed before you even realise it.
+- Color: (pre-attentive) palettes - qualitative, sequential, diverging.
+- Proximity: Place elements for primary comparison close together. 
+- Change blindness: When focus is interrupted differences may not be noticed.
+
+## Pre-attentive
+
+Can you find the odd one out?
+
+```{r echo=FALSE}
+df <- data.frame(x=runif(100), y=runif(100), cl=sample(c(rep("A", 1), rep("B", 99))))
+ggplot(data=df, aes(x, y, shape=cl)) + geom_point() +
+  theme_bw() + theme(legend.position="None", aspect.ratio=1)
+```
+
+---
+
+Is it easier now?
+
+```{r echo=FALSE}
+ggplot(data=df, aes(x, y, colour=cl)) + geom_point() + 
+  theme_bw() + theme(legend.position="None", aspect.ratio=1)
+```
+
+## Resources
+
+- [Data wrangling heat sheet](https://github.com/rstudio/cheatsheets/raw/master/source/pdfs/data-transformation-cheatsheet.pdf)
+- [Plotting data cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf)
+- [ggplot2: Elegant Graphics for Data Analysis, Hadley Wickham](http://ggplot2.org/book/), [web site](http://ggplot2.org)
+- [R Graphics Cookbook, Winston Chang](http://www.cookbook-r.com/Graphs/)
+- [Naomi Robbins, Creating More Effective Graphs](http://www.nbr-graphs.com)
+- [Antony Unwin, Graphical Data Analysis with R](https://www.crcpress.com/Graphical-Data-Analysis-with-R/Unwin/9781498715232)
+
+## Share and share alike
+
+This work is licensed under the Creative Commons Attribution-Noncommercial 3.0 United States License. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc/ 3.0/us/ or send a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
