@@ -1,0 +1,64 @@
+---
+title: "Ex_Rates"
+author: "Eugene Schön"
+date: "March 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# I had difficulty with the initial exchange rate file, so I have basically copied Gavin's code and made some minor changes.
+```{r message=FALSE}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(jsonlite)
+library(stats)
+library(ggplot2)
+library(knitr)
+
+Obs <- 10  
+# Change value of this variable depending on how many days worth of exchange data
+```
+``` {r copied}
+get_exchange_rates <- function(StartDate = Sys.Date(), n_Days = Obs) 
+  {
+  df <- data.frame()
+  for (i in 0:(n_Days - 1)) 
+    {
+    i_date <- StartDate - i
+    u <- sprintf("https://openexchangerates.org/api/historical/%s.json?app_id=b17f669a6e05448db2b861b35da33c9b", i_date)
+    rates <- fromJSON(u, simplifyVector = TRUE)$rates %>% as.data.frame()
+    rates$date <- as.Date(i_date)
+    df <- rbind(df, rates)
+    }
+  return(df)
+  }
+
+df <- get_exchange_rates()
+```
+# Random comment: sometimes, this loads, sometimes it times out.
+
+```{r Manipu}
+Dates <- c()
+for (j in 1:Obs) {
+Dates[j] <- as.character(Sys.Date() - as.difftime((j-1), unit = "days"))
+}
+
+Maj <- df[c("AUD", "EUR", "GBP", "JPY", "USD")]
+Val <- data.frame(lapply(Maj,  function(x) 100 * x[10]/x))
+Val <- cbind(Dates, Val)
+```
+``` {r plot}
+ggplot(Val, aes(Dates)) +
+ylab  ("10 days ago = 100") +
+geom_point(aes(y = AUD, colour = "AUD")) +
+geom_point(aes(y = USD, colour = "USD")) +
+geom_point(aes(y = EUR, colour = "EUR")) +
+geom_point(aes(y = GBP, colour = "GBP")) +
+geom_point(aes(y = JPY, colour = "JPY")) +
+  labs(title = "Recent Currency Movements")
+```
+
