@@ -163,9 +163,8 @@ ggplot(data=ff_long, aes(x=rating)) +
 ## Side-by-side boxplots
 
 ```{r}
-ggplot(data=ff_long, aes(x=rating)) + 
-  geom_histogram(binwidth=2) + 
-  facet_wrap(~variable, ncol=5) 
+ggplot(data=ff_long, aes(x=variable, y=rating)) + 
+  geom_boxplot() 
 ```
 
 ## Do the replicates look like each other?
@@ -189,7 +188,7 @@ p <- ggplot(data=ff.s, aes(x=`1`, y=`2`)) +
   theme(aspect.ratio=1) + 
   xlab("Rep 1") + ylab("Rep 2")
 p
-p + scale_x_log10() + scale_y_log10()
+p + scale_x_sqrt() + scale_y_sqrt()
 ```
 
 ## Your turn
@@ -347,10 +346,8 @@ french_fries %>%
 ## Check completeness with different scales, too
 
 ```{r}
-french_fries %>% 
-  gather(type, rating, -subject, -time, -treatment, -rep) %>%
-  select(subject, time, treatment, type) %>% 
-  tbl_df() %>% 
+ff_long %>% 
+  select(subject, time, treatment, variable) %>% 
   count(subject, time) %>%
   spread(time, n)
 ```
@@ -430,8 +427,12 @@ gtidy
 gmean <- gtidy %>% 
   group_by(id, trt, time) %>% 
   summarise(expr = mean(expr))
-qplot(trt, expr, data = gtidy, colour = time) + 
-  xlab("Type of modification") + ylab("Expression") + 
+gmean
+ggplot(data = gtidy, 
+       aes(x=trt, y=expr, colour = time)) + 
+  geom_point() +
+  xlab("Type of modification") +
+  ylab("Expression") + 
   facet_wrap(~id) +
   geom_line(data = gmean, aes(group = time))
 ```
