@@ -642,7 +642,7 @@ ggplot(data=df, aes(x, y, colour=cl)) + geom_point() +
 
 ## Resources
 
-- [Data wrangling heat sheet](https://github.com/rstudio/cheatsheets/raw/master/source/pdfs/data-transformation-cheatsheet.pdf)
+- [Data wrangling cheat sheet](https://github.com/rstudio/cheatsheets/raw/master/source/pdfs/data-transformation-cheatsheet.pdf)
 - [Plotting data cheat sheet](https://www.rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf)
 - [ggplot2: Elegant Graphics for Data Analysis, Hadley Wickham](http://ggplot2.org/book/), [web site](http://ggplot2.org)
 - [R Graphics Cookbook, Winston Chang](http://www.cookbook-r.com/Graphs/)
