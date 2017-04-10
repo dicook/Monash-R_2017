@@ -1,6 +1,6 @@
 # Monash-R_2017
 
-Repository for 2017 R workshop for Honours students
+Repository for 2017 R workshop for Honours and Masters students
 
 This is a list of software to install on your computer:
 
