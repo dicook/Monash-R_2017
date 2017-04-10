@@ -28,42 +28,13 @@ knitr::opts_chunk$set(
 - Scripting your analysis 
 - Keeping your code, data and documentation all together
 
-## Collaboration
+## Collaboration with git
 
 - At some point you are going to want to share your code, your proposal, your slides, your thesis with your advisor(s) --> github makes this easy and safe (even if your advisor doesn't know git)
 - git is a VERSION CONTROL SYSTEM, keeps track of changes, merges changes from multiple people, allows switch back to previous version
 - github provides additional support that can be really help in keeping your work organised, and getting feedback from your advisor - CAN BE A PRIVATE REPO
 - git client's, like [gitkracken](https://www.gitkraken.com) provide a friendly interface to using git
 - You can have some files as "tracked" and others as "untracked". Handy for if you have really large data, or proprietary data, the data would be untracked, you have a local copy in your local directory, collaborators can have a copy of the data, but the server does not have a copy.
-
-## Structure, and learning
-
-![](figures/DistributedVCS.png)
-
-[Jenny Bryan's git tutorial](git@github.com:dicook/Monash-R_2017.git)
-
-## Key github commands
-
-- `clone` Get a local copy of the repo
-- `pull` Get a fresh copy or changed files from the server
-- `add` Add a new file to be tracked
-- `commit` Let server know you want to merge changes
-- `push` Upload your changed files to the server
-
-## github structure
-
-- README.md: Great place to do weekly updates to your advisor
-- code: your thesis, code, data
-- wiki: Discussion board to map out project, hash out ideas, document progress
-- issues: Good place for you and advisor to list next steps, items to be completed, create, complete, keeps work ticking along in an organised 
-
-## Your turn
-
-- Go to [github.com](https://github.com)
-- Create an account
-- Give the name to one of Earo, Wenjing or Stuart, so I can add you to the repo for this class
-
-![](rainbow-lorikeet.png)
 
 ## R is ...
 
@@ -75,13 +46,14 @@ knitr::opts_chunk$set(
 * __Flexible__
     * Not a question of _can_, but _how_.
 * __Frustrating__
-    * Flexibility comes at a cost (easy to shoot yourself in the foot!).
+    * So choices, so many options, easy to feel lost.
+* __The language of data analysis__
 
 ```{r, eval = FALSE, echo = FALSE}
 # devtools::install_github("metacran/crandb")
 # pkgs <- crandb::list_packages(limit = 999999)
 # length(pkgs)
-# [1] 7330
+# [1] 10419
 ```
 
 ## R does ...
@@ -91,7 +63,6 @@ knitr::opts_chunk$set(
 * __Literate programming (dynamic reports)__
 * __Web applications__
 
-(Slides and material can be found at [https://github.com/dicook/Monash-R_2017](http://dicook.github.io/Monash-R_2017/).)
 
 ## RStudio is ...
 
@@ -135,6 +106,8 @@ biocLite("package_name")
 
 ## Get a copy of the course materials
 
+Slides and material can be found at [https://github.com/dicook/Monash-R_2017](http://dicook.github.io/Monash-R_2017/).
+
 - Go to [https://github.com/dicook/Monash-R_2017]
 - Download a zip copy of the repo
 - Unzip it
@@ -146,6 +119,18 @@ Create a project to contain all of the material covered in this set of tutorials
 * File -> New Project -> Existing Directory -> Monash-R_2017
 
 ![](createproject.png) 
+
+## Projects
+
+When a project is opened within RStudio the following actions are taken:
+
+- A new R session (process) is started
+- The `.Rprofile` file in the project's main directory (if any) is sourced by R
+- The `.RData` file in the project's main directory is loaded (if project options indicate that it should be loaded).
+- The `.Rhistory` file in the project's main directory is loaded into the RStudio History pane (and used for Console Up/Down arrow command history).
+- The current working directory is set to the project directory.
+- Previously edited source documents are restored into editor tabs
+- Other RStudio settings (e.g. active tabs, splitter positions, etc.) are restored to where they were the last time the project was closed.
 
 ## Why?
 
@@ -311,14 +296,6 @@ head(babynames)
 dim(babynames)
 ```
 
-## Write/read csv (or other flat files)
-
-```{r eval=FALSE}
-bb_path <- tempfile(fileext = ".csv", tmpdir = ".")
-write_csv(babynames, bb_path)
-read_csv(bb_path)
-```
-
 ## Get other formats into R
 
 ```{r, eval = FALSE}
@@ -336,37 +313,6 @@ read_por("path/to/file")
 read_sav("path/to/file")
 # Stata files
 read_dta("path/to/file")
-```
-
-## dplyr loves databases
-
-```{r eval=FALSE}
-db <- src_sqlite("babynames.sqlite3", create = TRUE)
-if (!db_has_table(db$con, "babynames")) {
-  copy_to(db, babynames)
-}
-```
-
-```{r eval=FALSE}
-db
-tbl(db, "babynames")
-```
-
-## Send computation to the data
-
-```{r eval=FALSE}
-h <- db %>% 
-  tbl("babynames") %>%
-  filter(name == "Hilary")
-```
-
-```{r eval=FALSE}
-class(h)
-h$query
-# execute SQL query and bring into R
-hc <- collect(h)
-class(hc)
-hc
 ```
 
 ## Read json format data from the web
@@ -387,18 +333,12 @@ If you'd like to collect exchange rates yourself, see [here](https://gist.github
 library(ggmap)
 library(ggthemes)
 m <- get_map(location=c(145.13, -37.9150), zoom=14, scale=1)
-#ggmap(m)
-b <- as.numeric(attr(m, "bb"))
-m_df <- data.frame(lon=(rep(1:640, 640)-1)/640*(b[4]-b[2])+b[2],
-                   lat=(rep(640:1, rep(640, 640))-1)/640*(b[3]-b[1])+b[1],
-                        fill=as.vector(m))
 ```
 ---
 
 ```{r fig.width=7, fig.height=7}
-ggplot() + geom_tile(data=m_df, aes(x=lon, y=lat, fill=fill)) +
-  scale_fill_identity() +
-  theme_map() + theme(legend.position="none", aspect.ratio=1)
+ggmap(m) + theme_map() + 
+  theme(legend.position="none", aspect.ratio=1)
 ```
 
 ## Getting spatial data
@@ -422,13 +362,7 @@ ggplot(nat_map) +
 ```
 
 
-## Homework
-
-1. Create a new Rmd file, that will read 10 days of exchange rates from, and makes a plot, or some summary statistics, or fit some model of the data
-2. Add and commit the file to the course github repo, in the "student_files" directory
-3. Create a new issue of something that you want me to add to/edit in your document
-
-## Thanks for coming!
+## Resources
 
 * Materials at [http://dicook.github.io/Monash-R_2017/](http://dicook.github.io/Monash-R/)
 * Resources at [RStudio](https://www.rstudio.com/resources/training/online-learning/)
